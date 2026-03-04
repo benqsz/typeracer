@@ -20,6 +20,8 @@ export const init = mutation({
         lastActiveTime: Date.now(),
       })
     }
+
+    await ctx.scheduler.runAfter(0, internal.game.init)
   },
 })
 

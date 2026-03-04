@@ -1,5 +1,5 @@
 import { internal } from '@/convex/_generated/api'
-import { internalMutation, mutation } from '@/convex/_generated/server'
+import { internalMutation, query } from '@/convex/_generated/server'
 import {
   ACTIVITY_TIMEOUT,
   FINISH_TIME,
@@ -9,7 +9,14 @@ import {
   WARMUP_TIME,
 } from '@/lib/constants'
 
-export const init = mutation({
+export const get = query({
+  args: {},
+  handler: async ctx => {
+    return await ctx.db.query('game').first()
+  },
+})
+
+export const init = internalMutation({
   args: {},
   handler: async ctx => {
     const game = await ctx.db.query('game').first()
