@@ -5,6 +5,8 @@ import { ConvexProvider, ConvexReactClient } from 'convex/react'
 import { ReactNode } from 'react'
 import { useLocalStorage } from 'usehooks-ts'
 
+import GameProvider from '@/hooks/useGame'
+
 type Props = {
   children: ReactNode
 }
@@ -14,7 +16,9 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 export default function Providers({ children }: Props) {
   return (
     <ConvexProvider client={convex}>
-      <SessionProvider useStorage={useLocalStorage}>{children}</SessionProvider>
+      <SessionProvider useStorage={useLocalStorage}>
+        <GameProvider>{children}</GameProvider>
+      </SessionProvider>
     </ConvexProvider>
   )
 }

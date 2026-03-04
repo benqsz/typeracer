@@ -1,22 +1,20 @@
 'use client'
 
-import { useSessionId } from 'convex-helpers/react/sessions'
 import { useMutation } from 'convex/react'
 import { ChangeEvent, useRef, useState } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
 
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/convex/_generated/api'
+import { useGame } from '@/hooks/useGame'
 import useTime from '@/hooks/useTime'
-import { calculateAccuracy, calculateWPM, cn } from '@/lib/utils'
+import { GAME_STATUS } from '@/lib/constants'
+import { calculateAccuracy, calculateWPM } from '@/lib/utils'
 
-type Props = {
-  currentSentence: string | undefined
-}
-
-export default function MainInput({ currentSentence }: Props) {
-  const [sessionId] = useSessionId()
+export default function MainInput() {
+  const { sessionId, game } = useGame()
   const updateProgress = useMutation(api.user.updateProgress)
 
   const [value, setValue] = useState('')
@@ -27,13 +25,18 @@ export default function MainInput({ currentSentence }: Props) {
   const time = useTime()
 
   const debouncedUpdateProgress = useDebounceCallback(() => {
-    if (!sessionId || !currentSentence || !startTime) return
+    if (!sessionId || !game?.currentSentence || !startTime) return
 
-    const wpm = calculateWPM(value, currentSentence, startTime, time.getTime())
+    const wpm = calculateWPM(
+      value,
+      game.currentSentence,
+      startTime,
+      time.getTime(),
+    )
     const accuracy = calculateAccuracy(
       totalKeystrokesRef.current,
       errorKeystrokesRef.current,
-      currentSentence,
+      game.currentSentence,
     )
 
     updateProgress({ sessionId, wpm, accuracy, progress: value })
@@ -49,7 +52,7 @@ export default function MainInput({ currentSentence }: Props) {
     if (val.length > value.length) {
       const newCharIndex = val.length - 1
       totalKeystrokesRef.current += 1
-      if (val[newCharIndex] !== currentSentence?.[newCharIndex]) {
+      if (val[newCharIndex] !== game?.currentSentence?.[newCharIndex]) {
         errorKeystrokesRef.current += 1
       }
     }
@@ -58,21 +61,20 @@ export default function MainInput({ currentSentence }: Props) {
     debouncedUpdateProgress()
   }
 
+  if (!game || !sessionId) return <Skeleton className="w-full h-8" />
+
   return (
     <Field>
-      <FieldLabel
-        htmlFor="main-input"
-        className={cn(!currentSentence && 'sr-only')}
-      >
+      <FieldLabel htmlFor="main-input">
         Type word above as fast as you can!
       </FieldLabel>
       <Input
-        disabled={!currentSentence || currentSentence === value}
+        disabled={game?.status !== GAME_STATUS.PLAYING}
         id="main-input"
         type="text"
         value={value}
         onChange={handleChange}
-        aria-invalid={value !== '' && !currentSentence?.startsWith(value)}
+        aria-invalid={value !== '' && !game?.currentSentence?.startsWith(value)}
         className="aria-invalid:bg-destructive/30"
       />
     </Field>
