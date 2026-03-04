@@ -35,3 +35,8 @@ export function calculateAccuracy(
   const correctKeystrokes = totalKeystrokes - errorKeystrokes
   return Math.round((correctKeystrokes / currentSentence.length) * 100)
 }
+
+export function secondsToRelativeTime(targetMs: number, nowMs: number) {
+  const diff = targetMs - nowMs
+  return Math.max(0, Math.floor(diff / 1000))
+}

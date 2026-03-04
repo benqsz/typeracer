@@ -41,6 +41,8 @@ export const ping = mutation({
     }
 
     await ctx.scheduler.runAfter(0, internal.game.prepareRound)
+
+    return Date.now()
   },
 })
 

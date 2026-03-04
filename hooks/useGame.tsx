@@ -3,7 +3,13 @@
 import { useSessionId } from 'convex-helpers/react/sessions'
 import { SessionId } from 'convex-helpers/server/sessions'
 import { useMutation, useQuery } from 'convex/react'
-import { createContext, ReactNode, useContext, useEffect } from 'react'
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 
 import { api } from '@/convex/_generated/api'
 import { PING_TIME } from '@/lib/constants'
@@ -30,6 +36,7 @@ type GameContextType = {
       }
     | null
     | undefined
+  serverTimeOffset: number
 }
 
 const GameContext = createContext<GameContextType | null>(null)
@@ -40,6 +47,7 @@ type Props = {
 
 export default function GameProvider({ children }: Props) {
   const [sessionId] = useSessionId()
+  const [serverTimeOffset, setServerTimeOffset] = useState(0)
 
   const initUser = useMutation(api.user.init)
   const pingUser = useMutation(api.user.ping)
@@ -56,15 +64,16 @@ export default function GameProvider({ children }: Props) {
     if (!sessionId) return
     pingUser({ sessionId })
 
-    const interval = setInterval(() => {
-      pingUser({ sessionId })
+    const interval = setInterval(async () => {
+      const serverTime = await pingUser({ sessionId })
+      setServerTimeOffset(serverTime - Date.now())
     }, PING_TIME)
 
     return () => clearInterval(interval)
   }, [sessionId, pingUser])
 
   return (
-    <GameContext.Provider value={{ sessionId, lobby, game }}>
+    <GameContext.Provider value={{ sessionId, lobby, game, serverTimeOffset }}>
       {children}
     </GameContext.Provider>
   )
