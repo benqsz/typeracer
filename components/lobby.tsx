@@ -1,17 +1,16 @@
 'use client'
 
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
+  type OnChangeFn,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import {
   Table,
@@ -22,89 +21,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import useColumns from '@/hooks/useCollumns'
 import { useGame } from '@/hooks/useGame'
-
-type Player = {
-  sessionId: string
-  username: string
-  progress?: string
-  wpm?: number
-  accuracy?: number
-}
-
-function SortIcon({ isSorted }: { isSorted: false | 'asc' | 'desc' }) {
-  if (isSorted === 'asc') return <ArrowUp className="ml-1 size-3" />
-  if (isSorted === 'desc') return <ArrowDown className="ml-1 size-3" />
-  return <ArrowUpDown className="ml-1 opacity-40 size-3" />
-}
 
 export default function Lobby() {
   const { sessionId, lobby } = useGame()
-  const [sorting, setSorting] = useState<SortingState>([])
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const columns = useColumns(sessionId)
 
-  const columns = useMemo<ColumnDef<Player>[]>(
-    () => [
-      {
-        accessorKey: 'username',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="flex items-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Username <SortIcon isSorted={column.getIsSorted()} />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <>
-            {row.original.username}
-            {row.original.sessionId === sessionId && (
-              <span className="ml-1 text-muted-foreground">(You)</span>
-            )}
-          </>
-        ),
-      },
-      {
-        accessorKey: 'progress',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="flex items-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Live progress <SortIcon isSorted={column.getIsSorted()} />
-          </Button>
-        ),
-      },
-      {
-        accessorKey: 'wpm',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="flex items-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            WPM <SortIcon isSorted={column.getIsSorted()} />
-          </Button>
-        ),
-      },
-      {
-        accessorKey: 'accuracy',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="flex items-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Accuracy <SortIcon isSorted={column.getIsSorted()} />
-          </Button>
-        ),
-        cell: ({ getValue }) =>
-          getValue<number>() ? `${getValue<number>()}%` : '-',
-      },
-    ],
-    [sessionId],
-  )
+  const sorting: SortingState = useMemo(() => {
+    const id = searchParams.get('sort')
+    const desc = searchParams.get('dir') === 'desc'
+    return id ? [{ id, desc }] : []
+  }, [searchParams])
 
   const data = useMemo(
     () =>
@@ -113,6 +43,21 @@ export default function Lobby() {
       ),
     [lobby, sessionId],
   )
+
+  const setSorting: OnChangeFn<SortingState> = updater => {
+    const next = typeof updater === 'function' ? updater(sorting) : updater
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (next.length > 0) {
+      params.set('sort', next[0].id)
+      params.set('dir', next[0].desc ? 'desc' : 'asc')
+    } else {
+      params.delete('sort')
+      params.delete('dir')
+    }
+
+    router.replace(`?${params.toString()}`, { scroll: false })
+  }
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
