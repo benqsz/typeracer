@@ -1,5 +1,6 @@
 'use client'
 
+import MainInput from '@/components/main-input'
 import { Separator } from '@/components/ui/separator'
 import { Spinner } from '@/components/ui/spinner'
 import useGame from '@/hooks/useGame'
@@ -36,6 +37,8 @@ export default function HomePage() {
     <div className="mx-auto max-w-2xl p-4 space-y-4">
       <h1 className="text-2xl font-bold">{stageText}</h1>
       <Separator />
+      <MainInput currentSentence={game.currentSentence} />
+      <Separator />
       <div>
         <h2 className="font-semibold mb-2">Current lobby: </h2>
         <ul>
@@ -44,7 +47,8 @@ export default function HomePage() {
             .map(player => (
               <li key={player.sessionId}>
                 {player.username}{' '}
-                {player.sessionId === currentUserId && '(You)'}
+                {player.sessionId === currentUserId && '(You)'}-{' '}
+                {player.progress} WPM: {player.wpm} Accuracy: {player.accuracy}%
               </li>
             ))}
         </ul>

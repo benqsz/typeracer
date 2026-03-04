@@ -75,9 +75,9 @@ export const startRound = internalMutation({
 
     for (const user of activeUsers) {
       await ctx.db.patch(user._id, {
-        progress: '',
-        wpm: '',
-        accuracy: '',
+        progress: undefined,
+        wpm: undefined,
+        accuracy: undefined,
       })
     }
 
@@ -109,7 +109,7 @@ export const finishRound = internalMutation({
       winnerId: undefined,
     })
 
-    await ctx.scheduler.runAfter(0, internal.game.restartRound)
+    await ctx.scheduler.runAfter(FINISH_TIME, internal.game.restartRound)
   },
 })
 
@@ -131,6 +131,6 @@ export const restartRound = internalMutation({
       winnerId: undefined,
     })
 
-    await ctx.scheduler.runAfter(FINISH_TIME, internal.game.prepareRound)
+    await ctx.scheduler.runAfter(0, internal.game.prepareRound)
   },
 })

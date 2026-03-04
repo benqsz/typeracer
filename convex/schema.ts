@@ -9,8 +9,8 @@ export default defineSchema({
     username: v.string(),
     lastActiveTime: v.number(),
     progress: v.optional(v.string()),
-    wpm: v.optional(v.string()),
-    accuracy: v.optional(v.string()),
+    wpm: v.optional(v.number()),
+    accuracy: v.optional(v.number()),
   })
     .index('by_sessionId', ['sessionId'])
     .index('by_lastActiveTime', ['lastActiveTime']),

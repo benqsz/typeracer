@@ -57,3 +57,26 @@ export const getLobby = query({
       .collect()
   },
 })
+
+export const updateProgress = mutation({
+  args: {
+    sessionId: v.string(),
+    progress: v.string(),
+    wpm: v.number(),
+    accuracy: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('user')
+      .withIndex('by_sessionId', q => q.eq('sessionId', args.sessionId))
+      .unique()
+
+    if (user) {
+      await ctx.db.patch(user._id, {
+        progress: args.progress,
+        wpm: args.wpm,
+        accuracy: args.accuracy,
+      })
+    }
+  },
+})
