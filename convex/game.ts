@@ -1,11 +1,18 @@
+import { v } from 'convex/values'
+
 import { internal } from '@/convex/_generated/api'
-import { internalMutation, query } from '@/convex/_generated/server'
+import {
+  internalAction,
+  internalMutation,
+  query,
+} from '@/convex/_generated/server'
 import {
   ACTIVITY_TIMEOUT,
   FINISH_TIME,
   GAME_STATUS,
   MIN_PLAYERS,
   ROUND_TIME,
+  SentenceData,
   WARMUP_TIME,
 } from '@/lib/constants'
 
@@ -50,14 +57,25 @@ export const prepareRound = internalMutation({
         warmupEndTime: now + WARMUP_TIME,
       })
 
-      await ctx.scheduler.runAfter(WARMUP_TIME, internal.game.startRound)
+      await ctx.scheduler.runAfter(WARMUP_TIME, internal.game.getSentence)
     }
   },
 })
 
-export const startRound = internalMutation({
+export const getSentence = internalAction({
   args: {},
   handler: async ctx => {
+    const res = await fetch(`${process.env.APP_URL}/api/sentence`)
+    const data: SentenceData = await res.json()
+    await ctx.runMutation(internal.game.startRound, {
+      sentence: data[0].content,
+    })
+  },
+})
+
+export const startRound = internalMutation({
+  args: { sentence: v.string() },
+  handler: async (ctx, { sentence }) => {
     const game = await ctx.db.query('game').first()
 
     if (!game || game.status !== GAME_STATUS.STARTING) {
@@ -84,8 +102,7 @@ export const startRound = internalMutation({
     await ctx.db.patch(game._id, {
       status: GAME_STATUS.PLAYING,
       roundEndTime: now + ROUND_TIME,
-      // TODO fetch from api
-      currentSentence: 'The quick brown fox jumps over the lazy dog.',
+      currentSentence: sentence,
       winnerId: '',
     })
 

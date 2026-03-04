@@ -13,3 +13,12 @@ export const GAME_STATUS = {
   PLAYING: 'PLAYING',
   FINISHED: 'FINISHED',
 } as const
+
+export type SentenceData = Array<{
+  _id: string
+  content: string
+  author: string
+  authorSlug: string
+  length: number
+  tags: string[]
+}>
