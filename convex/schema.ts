@@ -1,7 +1,7 @@
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 
-import { gameStatus } from '@/convex/types'
+import { GAME_STATUS } from '@/lib/constants'
 
 export default defineSchema({
   user: defineTable({
@@ -17,11 +17,12 @@ export default defineSchema({
 
   game: defineTable({
     status: v.union(
-      v.literal(gameStatus.WAITING),
-      v.literal(gameStatus.PLAYING),
-      v.literal(gameStatus.FINISHED),
+      v.literal(GAME_STATUS.WAITING),
+      v.literal(GAME_STATUS.STARTING),
+      v.literal(GAME_STATUS.PLAYING),
+      v.literal(GAME_STATUS.FINISHED),
     ),
-    countdownEndTime: v.optional(v.number()),
+    warmupEndTime: v.optional(v.number()),
     roundEndTime: v.optional(v.number()),
     currentSentence: v.optional(v.string()),
     winnerId: v.optional(v.string()),

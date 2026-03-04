@@ -12,8 +12,13 @@ export default function useGame() {
 
   const initUser = useMutation(api.user.init)
   const pingUser = useMutation(api.user.ping)
+  const initGame = useMutation(api.game.init)
 
   const lobby = useQuery(api.user.getLobby)
+
+  useEffect(() => {
+    initGame()
+  }, [initGame])
 
   useEffect(() => {
     if (!sessionId) return

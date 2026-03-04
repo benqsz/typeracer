@@ -1,5 +1,6 @@
 import { v } from 'convex/values'
 
+import { internal } from '@/convex/_generated/api'
 import { mutation, query } from '@/convex/_generated/server'
 import { ACTIVITY_TIMEOUT } from '@/lib/constants'
 
@@ -36,6 +37,8 @@ export const ping = mutation({
         lastActiveTime: now,
       })
     }
+
+    await ctx.scheduler.runAfter(0, internal.game.prepareRound)
   },
 })
 
